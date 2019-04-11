@@ -15,7 +15,7 @@ app.get('/', function(req, res) {
 
 app.use(function(req, res, next){
 	res.status(404);
-	res.end("404 Not found\n");
+	res.end("404: Not found\n");
 });
 
 var httpsServer = https.createServer(options, app);
