@@ -28,16 +28,13 @@ const options = {
 };
 
 app.use(catchErrors(async function(req, res, next){
+	res.locals.app = app;
 	res.locals.baseUrl = `${req.protocol}://${req.headers.host}`;
 
 	next();
 }));
 
 app.use('/', routes);
-
-app.get('/login', function(req, res){
-	res.render('index', {title: 'Murphy\'s Maths', message: "Login to the Murphy's Maths Control Panel"});
-});
 
 // Handle 404 page
 app.use(function(req, res, next){
