@@ -1,8 +1,16 @@
-const path = require('path')
+/*
+Copyright (C) 2019 Ryan Bester
+*/
+
+const path = require('path');
 const https = require('https');
 const fs = require('fs');
-const express = require('express')
-const helmet = require('helmet')
+const express = require('express');
+const helmet = require('helmet');
+const argon2 = require('argon2');
+
+const routes = require('./routes/index');
+const { catchErrors } = require('./handlers/errorHandlers')
 
 const app = express();
 
@@ -12,14 +20,23 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(helmet());
+app.use(express.static(path.join(__dirname, 'public')));
 
 const options = {
 	key: fs.readFileSync("/etc/nginx/certs/www.ryanbester.com.key", 'utf8'),
 	cert: fs.readFileSync("/etc/nginx/certs/www.ryanbester.com.crt", 'utf8')
 };
 
-app.get('/', function(req, res) {
-	res.render('index', {title: 'Murphy\'s Maths', message: 'Welcome to Murphy\'s Maths'});
+app.use(catchErrors(async function(req, res, next){
+	res.locals.baseUrl = `${req.protocol}://${req.headers.host}`;
+
+	next();
+}));
+
+app.use('/', routes);
+
+app.get('/login', function(req, res){
+	res.render('index', {title: 'Murphy\'s Maths', message: "Login to the Murphy's Maths Control Panel"});
 });
 
 // Handle 404 page
@@ -46,3 +63,5 @@ app.use(function(err, req, res, next){
 
 var httpsServer = https.createServer(options, app);
 httpsServer.listen(process.env.PORT);
+
+module.exports = app;
