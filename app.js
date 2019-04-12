@@ -1,3 +1,4 @@
+const path = require('path')
 const https = require('https');
 const fs = require('fs');
 const express = require('express')
@@ -5,6 +6,7 @@ const helmet = require('helmet')
 
 const app = express();
 
+app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 const options = {
@@ -13,8 +15,7 @@ const options = {
 };
 
 app.get('/', function(req, res) {
-	res.writeHead(200);
-	res.end("Hello, World!\n");
+	res.render('index', {title: 'Title', message: 'Welcome to Murphys Maths'});
 });
 
 // Handle 404 page
