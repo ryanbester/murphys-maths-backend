@@ -1,0 +1,21 @@
+{
+  "name": "murphys-maths-backend",
+  "version": "1.0.0",
+  "description": "Murphys Maths Backend",
+  "main": "app.js",
+  "dependencies": {
+    "argon2": "^0.21.0",
+    "argon2-cli": "^0.19.2",
+    "express": "^4.16.4",
+    "helmet": "^3.16.0",
+    "fs": "^0.0.1-security",
+    "https": "^1.0.0",
+    "pug": "^2.0.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryan Bester",
+  "license": "ISC"
+}
