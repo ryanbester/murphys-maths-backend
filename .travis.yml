@@ -1,0 +1,5 @@
+language: node_js
+node_js:
+ - "LTS/*"
+env:
+- NODE_ENV=TEST
