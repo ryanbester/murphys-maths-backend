@@ -6,7 +6,7 @@ const helmet = require('helmet')
 
 const app = express();
 
-app.set('title', "Murphys Maths");
+app.set('title', "Murphy's Maths");
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -19,7 +19,7 @@ const options = {
 };
 
 app.get('/', function(req, res) {
-	res.render('index', {title: 'Murphys Maths', message: 'Welcome to Murphys Maths'});
+	res.render('index', {title: 'Murphy\'s Maths', message: 'Welcome to Murphy\'s Maths'});
 });
 
 // Handle 404 page
