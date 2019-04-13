@@ -2,7 +2,7 @@
 Copyright (C) 2019 Ryan Bester
 */
 
-/*jshint esversion: 6 */
+/*jshint esversion: 8 */
 
 const path = require('path');
 const https = require('https');
