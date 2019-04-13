@@ -41,5 +41,8 @@ html(lang='en-gb')
                             td
                                 a(href='/login')
                                     h1= 'Login'
-        .main-container
-            block content
+            .main-container
+                block content
+        else
+            .login-container
+                block content
