@@ -2,6 +2,8 @@
 Copyright (C) 2019 Ryan Bester
 */
 
+/*jshint esversion: 6 */
+
 const path = require('path');
 const https = require('https');
 const fs = require('fs');
@@ -10,7 +12,7 @@ const helmet = require('helmet');
 const argon2 = require('argon2');
 
 const routes = require('./routes/index');
-const { catchErrors } = require('./handlers/errorHandlers')
+const { catchErrors } = require('./handlers/errorHandlers');
 
 const app = express();
 
