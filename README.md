@@ -1,5 +1,7 @@
 # Murphys Maths Backend
 
+![](https://travis-ci.org/ryanbester/murphys-maths-backend.svg?branch=master)
+
 Backend site for the Murphys Maths website.
 
 This application is powered by node.js and is set up as a reverse proxy from nginx.
