@@ -1,5 +1,6 @@
 language: node_js
+dist: "xenial"
 node_js:
- - "xenial"
+ - "10.15.3"
 env:
 - NODE_ENV=TEST
