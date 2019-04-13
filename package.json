@@ -14,7 +14,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "jshint /"
+    "test": "jshint ."
   },
   "author": "Ryan Bester",
   "license": "ISC"
