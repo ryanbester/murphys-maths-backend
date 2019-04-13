@@ -6,8 +6,11 @@ const express = require('express');
 const router = express.Router();
 
 const { catchErrors } = require('../handlers/errorHandlers');
-const { showIndexPage } = require('../core/index.js')
 
-router.get('/', catchErrors(showIndexPage))
+showLoginPage = (req, res, next) => {
+	res.render('index', {title: "Login", message: "Login to the Murphy's Maths Control Panel"});
+}
+
+router.get('/', catchErrors(showLoginPage));
 
 module.exports = router;
