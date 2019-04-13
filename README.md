@@ -50,4 +50,4 @@ Always commit on the `develop` branch, create a new branch for features (with pr
 
 If there are any important bugs that could affect the security or core functionality of the application, branch off from the `master` branch to a new branch named `hotfix-*`, fix the bug before merging back to `develop` and submitting a pull request to `master`.
 
-Reference: https://nvie.com/posts/a-successful-git-branching-model/
+Credit: https://nvie.com/posts/a-successful-git-branching-model/
