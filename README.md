@@ -1,5 +1,7 @@
 # Murphys Maths Backend
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/22b77e32672d45dfaae59c7d072d4c3a)](https://app.codacy.com/app/ryanbester/murphys-maths-backend?utm_source=github.com&utm_medium=referral&utm_content=ryanbester/murphys-maths-backend&utm_campaign=Badge_Grade_Settings)
+
 ![](https://travis-ci.org/ryanbester/murphys-maths-backend.svg?branch=master)
 
 Backend site for the Murphys Maths website.
