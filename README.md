@@ -2,6 +2,8 @@
 
 ![](https://travis-ci.org/ryanbester/murphys-maths-backend.svg?branch=master)
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/a44c0481c07c45f2b1b7289da764a5a3)](https://www.codacy.com/app/ryanbester/murphys-maths-backend?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ryanbester/murphys-maths-backend&amp;utm_campaign=Badge_Grade)
+
 Backend site for the Murphys Maths website.
 
 This application is powered by node.js and is set up as a reverse proxy from nginx.
