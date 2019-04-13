@@ -1,0 +1,23 @@
+//- Copyright (C) 2019 Ryan Bester
+extends layout
+
+block content
+    h1= message
+    .login-form-container
+        form.login-form(method='POST' action='')
+            input.login-form-input#login-form-input-username(
+                type='text'
+                name='username'
+                placeholder='Username'
+            )
+            br
+            input.login-form-input#login-form-input-password(
+                type='password'
+                name='password'
+                placeholder='Password'
+            )
+            br
+            input.login-form-button#login-form-button-login(
+                type='submit'
+                value='Login'
+            )
