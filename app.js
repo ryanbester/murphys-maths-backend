@@ -14,7 +14,7 @@ const { catchErrors } = require('./handlers/errorHandlers')
 
 const app = express();
 
-app.set('title', "Murphy's Maths");
+app.set('title', "Murphy's Maths Control Panel");
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -55,7 +55,7 @@ app.use(function(err, req, res, next){
 
 	res.locals.title = err.message;
 	res.status(err.status || 500);
-	res.render('error');
+	res.render('error', {title: "Error"});
 });
 
 var httpsServer = https.createServer(options, app);

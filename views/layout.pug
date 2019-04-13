@@ -8,7 +8,7 @@ html(lang='en-gb')
             title #{app.settings.title}
         link(rel='stylesheet' href='/stylesheets/style.css' type='text/css')
         meta(charset='UTF-8')
-        meta(name='viewport' content='width=devices-width')
+        meta(name='viewport' content='width=device-width')
         meta(name='mobile-web-app-capable' content='yes')
         meta(name='manifest' href='/manifest.json')
         meta(name='icon' href='/img/logo-48x48.png' type='image/png' sizes='48x48')
@@ -27,12 +27,19 @@ html(lang='en-gb')
         meta(name='msapplication-window' content='width=1024;height=768')
         meta(name='msapplication-starturl' content='/')
     body
-        .header-container
-            table.header
-                tr
-                    td
-                        h1= "Murphy\'s Maths"
-                    td
-                        a= "Login"
+        if userLoggedIn
+            #main-title-bar
+                #main-title-bar-left
+                    table#main-title-bar-left-table.main-title-bar-table
+                        tr
+                            td
+                                a(href='/')
+                                    h1#main-title-bar-title #{app.settings.title}
+                #main-title-bar-right
+                    table#main-title-bar-right-table.main-title-bar-table
+                        tr
+                            td
+                                a(href='/login')
+                                    h1= 'Login'
         .main-container
             block content
