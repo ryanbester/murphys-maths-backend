@@ -3,4 +3,7 @@ extends layout
 
 block content
     h1 #{error.status}
-    p #{error.message}
+    if env.NODE_ENV == 'development'
+        p #{error.stack}
+    else
+        p #{error.message}

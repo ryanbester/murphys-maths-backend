@@ -12,7 +12,6 @@ const helmet = require('helmet');
 const argon2 = require('argon2');
 
 const routes = require('./routes/index');
-const { catchErrors } = require('./handlers/errorHandlers');
 
 const app = express();
 
@@ -29,12 +28,10 @@ const options = {
 	cert: fs.readFileSync("/etc/nginx/certs/www.ryanbester.com.crt", 'utf8')
 };
 
-app.use(catchErrors(async function(req, res, next){
+app.use(function(req, res, next){
 	res.locals.app = app;
-	res.locals.baseUrl = `${req.protocol}://${req.headers.host}`;
-
 	next();
-}));
+});
 
 app.use('/', routes);
 
@@ -48,6 +45,7 @@ app.use(function(req, res, next){
 // Error handler
 app.use(function(err, req, res, next){
 	res.locals.app = app;
+	res.locals.env = process.env;
 	res.locals.error = err;
 	res.locals.error.status = err.status || 500;
 	
