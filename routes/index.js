@@ -10,21 +10,28 @@ const argon2 = require('argon2');
 const Auth = require('../core/auth');
 
 const showLoginPage = (req, res, next) => {
-    Auth.encryptPassword("password").then(encrypted => {
-        message = encrypted.join("\n");
+    res.render('login', {title: "Login", message: "Login to the Murphy's Maths Control Panel"});
+}
 
-        Auth.verifyPassword("password", {"all": encrypted}).then(result => {
-            message += "Verify password: " + result;
-            res.render('index', {title: 'Murphy\'s Maths', message: message});
+const performLogin = (req, res, next) => {
+    const username = req.body.username;
+    const password = req.body.password;
+
+    Auth.readPasswordFromDatabase(username).then(result => {
+        Auth.verifyPassword(password, {
+            all: result
+        }).then(result => {
+            res.redirect(301, '/dashboard');
         }, err => {
-            message += "Verify password: false";
-            res.render('index', {title: 'Murphy\'s Maths', message: message});        
+            res.render('login', {error: "Your username or password is incorrect", title: "Login", message: "Login to the Murphy's Maths Control Panel"});
         });
     }, err => {
-        res.render('index', {title: 'Error | Murphy\'s Maths', message: "Encrypt password: " + err.stack});
+        res.render('login', {error: "Your username or password is incorrect", title: "Login", message: "Login to the Murphy's Maths Control Panel"});
     });
 }
 
 router.get('/', showLoginPage);
+
+router.post('/', performLogin);
 
 module.exports = router;

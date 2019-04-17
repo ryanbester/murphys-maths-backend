@@ -38,6 +38,9 @@ module.exports = class Auth {
                     // Execute the query to check for the IV
                     connection.query("SELECT COUNT(*) AS IVCount FROM passwd WHERE salt_iv = UNHEX(" + connection.escape(iv.toString('hex')) + ")",
                     (error, results, fields) => {
+                        // Close the connection
+                        connection.end();
+
                         if (error) reject(error);
 
                         // If the IV is in the database, generate a new IV and continue the loop
@@ -55,7 +58,7 @@ module.exports = class Auth {
             // Create a loop
             ((data, condition, action) => {
                 var whilst = data => {
-                    // If IV is not in database, end the loops
+                    // If IV is not in database, end the loop
                     return condition(data) ? action(data).then(whilst): Promise.resolve(data);
                 }
                 return whilst(data);
@@ -166,9 +169,57 @@ module.exports = class Auth {
         });
     }
 
-    static readPasswordFromDatabase(user_id){
+    static readPasswordFromDatabase(username){
         return new Promise((resolve, reject) => {
-            
+            // Create a connection to the database
+            const connection = db.getConnection();
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the query to get the record with the username
+            connection.query("SELECT user_id FROM users WHERE username = " + connection.escape(username),
+            (error, results, fields) => {
+                if (error){
+                    // Close the connection
+                    connection.end();
+
+                    reject(error);   
+                }             
+
+                // If the username matches a record
+                if(results.length > 0){
+                    // Get the user ID
+                    const user_id = results[0].user_id;
+
+                    // Query the passwd table for the password, salt, and IV with the user ID
+                    connection.query("SELECT password, HEX(salt) AS salt, HEX(salt_iv) AS salt_iv FROM passwd WHERE user_id = " + connection.escape(user_id),
+                    (error, results, fields) => {
+                        // Close the connection
+                        connection.end();
+
+                        if (error) reject(error);
+
+                        // If the user ID matches a record
+                        if(results.length > 0){
+                            // Get the password, salt, and IV
+                            const hash = results[0].password;
+                            const salt = results[0].salt;
+                            const salt_iv = results[0].salt_iv;
+
+                            // Return the password, salt, and IV
+                            resolve([hash, salt, Buffer.from(salt_iv, 'hex')]);
+                        } else {
+                            reject("Username or password is incorrect");
+                        }
+                    });
+                } else {
+                    // Close the connection
+                    connection.end();
+
+                    reject("Username or password is incorrect");
+                }
+            });
         });
     }
 }

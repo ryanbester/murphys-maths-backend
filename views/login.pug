@@ -4,6 +4,7 @@ extends layout
 block content
     h1= message
     .login-form-container
+        h2#login-form-error-message= error
         form.login-form(method='POST' action='')
             input.login-form-input#login-form-input-username(
                 type='text'

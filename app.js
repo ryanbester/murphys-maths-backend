@@ -23,6 +23,10 @@ app.set('view engine', 'pug');
 app.use(helmet());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.urlencoded({
+	extended: true
+}));
+
 const options = {
 	key: fs.readFileSync("/etc/nginx/certs/www.ryanbester.com.key", 'utf8'),
 	cert: fs.readFileSync("/etc/nginx/certs/www.ryanbester.com.crt", 'utf8')
