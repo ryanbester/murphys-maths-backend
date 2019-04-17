@@ -4,6 +4,7 @@ Copyright (C) 2019 Ryan Bester
 
 const crypto = require('crypto');
 const argon2 = require('argon2');
+const mysql = require('mysql');
 
 const db = require('../db/db');
 
@@ -23,36 +24,54 @@ module.exports = class Auth {
             const hash2 = crypto.createHmac('sha256', process.env.SECRET_2).update(password).digest('base64').substr(0, 32);
 
             // Generate the initialization vector (nonce)
-            const iv = crypto.randomBytes(16);
+            var iv = crypto.randomBytes(16);
 
-            (_ => {
-                const connection = db.getConnection();
-            
-                connection.connect();
+            // Check if the IV is in the database
+            const checkIV = ivFound => {
+                return new Promise((resolve, reject) => {
+                    // Create a connection to the database
+                    const connection = db.getConnection();
 
-                connection.query("SELECT COUNT(*) AS IVCount FROM passwd WHERE salt_iv = " + connection.escape(iv),
-                (error, results, fields) => {
-                    if (error) reject(err);
+                    // Open the connection
+                    connection.connect();
 
-                    if(results[0].IVCount > 0){
-                        // TODO: Create a new IV and check again (Loop)
-                    }
+                    // Execute the query to check for the IV
+                    connection.query("SELECT COUNT(*) AS IVCount FROM passwd WHERE salt_iv = UNHEX(" + connection.escape(iv.toString('hex')) + ")",
+                    (error, results, fields) => {
+                        if (error) reject(error);
+
+                        // If the IV is in the database, generate a new IV and continue the loop
+                        if(results[0].IVCount > 0){
+                            iv = crypto.randomBytes(16);
+                            resolve(true);
+                        } else {
+                            // End the loop
+                            resolve(false);
+                        }
+                    });
                 });
+            }
 
-                connection.end();
-            })();
+            // Create a loop
+            ((data, condition, action) => {
+                var whilst = data => {
+                    // If IV is not in database, end the loops
+                    return condition(data) ? action(data).then(whilst): Promise.resolve(data);
+                }
+                return whilst(data);
+            })(true, ivFound => ivFound, checkIV).then(ivFound => {
+                // Encrypt the salt with the SHA-256'd password with AES-256-CBC
+                const cipher = crypto.createCipheriv('aes-256-cbc', hash2, iv);
+                const saltEncrypted = cipher.update(salt, 'utf8', 'hex') + cipher.final('hex');
 
-            // Encrypt the salt with the SHA-256'd password with AES-256-CBC
-            const cipher = crypto.createCipheriv('aes-256-cbc', hash2, iv);
-            const saltEncrypted = cipher.update(salt, 'utf8', 'hex') + cipher.final('hex');
-
-            // Hash the first hash with Argon2
-            argon2.hash(hash1, {type: argon2.argon2id, timeCost: 8, parallelism: 8})
-            .then(hash => {
-                // Return the hashed password, encrypted salt, and salt IV
-                resolve([hash, saltEncrypted, iv]);
-            }, err => {
-                reject(err);
+                // Hash the first hash with Argon2
+                argon2.hash(hash1, {type: argon2.argon2id, timeCost: 8, parallelism: 8})
+                .then(hash => {
+                    // Return the hashed password, encrypted salt, and salt IV
+                    resolve([hash, saltEncrypted, iv]);
+                }, err => {
+                    reject(err);
+                });
             });
         });
     }
