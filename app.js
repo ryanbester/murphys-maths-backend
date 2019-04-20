@@ -8,6 +8,7 @@ const path = require('path');
 const https = require('https');
 const fs = require('fs');
 const express = require('express');
+const connect = require('connect');
 const helmet = require('helmet');
 const argon2 = require('argon2');
 
@@ -21,6 +22,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(helmet());
+app.use(connect());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.urlencoded({

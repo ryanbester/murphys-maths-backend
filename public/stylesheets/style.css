@@ -133,3 +133,7 @@ button:active, input[type='submit']:active, input[type='button']:active {
 .login-form-button {
     margin-top: 7px;
 }
+
+#login-form-error-message {
+    color: #ff0000;
+}
