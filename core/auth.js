@@ -245,12 +245,75 @@ module.exports.Auth = class Auth {
 }
 
 module.exports.User = class User {
-    constructor(user_id){
+    constructor(user_id, username, first_name, last_name, email_address){
         this.user_id = user_id;
+        this.username = username;
+        this.first_name = first_name;
+        this.last_name = last_name;
+        this.email_address = email_address;
     }
 
-    load_info(){
+    loadInfo(){
+        return new Promise((resolve, reject) => {
+            // Check if user ID is set
+            if (this.user_id === undefined) {
+                reject("User ID not set");
+            }
 
+            // Create a connection to the database
+            const connection = db.getConnection();
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the query to obtain the user details
+            connection.query("SELECT * FROM users WHERE user_id = " + connection.escape(this.user_id),
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                // IF the user ID matches a record
+                if (results.length > 0) {
+                    // Get the user details
+                    this.username = results[0].username;
+                    this.first_name = results[0].first_name;
+                    this.last_name = results[0].last_name;
+                    this.email_address = results[0].email_address;
+
+                    resolve(true);
+                } else {
+                    reject(false);
+                }
+            });
+        });
+    }
+
+    verifyUser() {
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection();
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the query to check for the user ID
+            connection.query("SELECT COUNT(*) AS UserCount FROM users WHERE user_id = " + connection.escape(this.user_id),
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                // If the user is in the database, return true
+                if(results[0].UserCount > 0 && results[0].UserCount < 2){
+                    resolve(true);
+                } else {
+                    reject(false);
+                }
+            });
+        });
     }
 }
 
@@ -353,7 +416,7 @@ module.exports.AccessToken = class AccessToken {
             connection.connect();
 
             // Check if the access token is in the database
-            connection.query("SELECT * FROM access_tokens WHERE access_token = UNHEX(" + connection.escape(this.id) + ")",
+            connection.query("SELECT * FROM access_tokens WHERE access_token = UNHEX(" + connection.escape(hash) + ")",
             (error, results, fields) => {
                 // Close the connection
                 connection.end();

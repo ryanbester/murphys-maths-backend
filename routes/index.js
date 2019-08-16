@@ -11,7 +11,33 @@ require('datejs');
 const { Auth, AccessToken, User } = require('../core/auth');
 
 const showLoginPage = (req, res, next) => {
-    res.render('login', {title: "Login", message: "Login to the Murphy's Maths Control Panel"});
+    const renderLoginPage = () => {
+        res.render('login', {title: "Login", message: "Login to the Murphy's Maths Control Panel"});
+    }
+
+    if(req.signedCookies['AUTHTOKEN'] !== undefined){
+        const accessToken = new AccessToken(null, null, req.signedCookies['AUTHTOKEN']);
+        accessToken.checkToken().then(result => {
+            if(result == true){
+                const user = new User(accessToken.user_id);
+                user.verifyUser().then(result => {
+                    if (result == true) {
+                        res.redirect(301, '/dashboard');
+                    } else {
+                        renderLoginPage();
+                    }
+                }, err => {
+                    renderLoginPage();
+                });
+            } else {
+                renderLoginPage();
+            }
+        }, err => {
+            renderLoginPage();
+        });
+    } else {
+        renderLoginPage();
+    }
 }
 
 const performLogin = (req, res, next) => {
@@ -39,10 +65,10 @@ const performLogin = (req, res, next) => {
                         // If the remember me option was checked, make the cookie last longer...
                         var maxAge = accessToken.lifetime * 60 * 1000;
                         var expires = accessToken.expiry;
-                        res.cookie('AUTHTOKEN', accessToken.id, {maxAge: maxAge, expires: expires, httpOnly: true, secure: true});
+                        res.cookie('AUTHTOKEN', accessToken.id, {maxAge: maxAge, expires: expires, httpOnly: true, secure: true, signed: true});
                     } else {
                         // ...otherwise the cookie will expire when the browsing session ends
-                        res.cookie('AUTHTOKEN', accessToken.id, {httpOnly: true, secure: true});
+                        res.cookie('AUTHTOKEN', accessToken.id, {httpOnly: true, secure: true, signed: true});
                     }
                     // Redirect the user to the dashboard
                     res.redirect(301, '/dashboard');
@@ -58,8 +84,41 @@ const performLogin = (req, res, next) => {
     });
 }
 
+const showDashboard = (req, res, next) => {
+    if(req.signedCookies['AUTHTOKEN'] === undefined){
+        res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
+    } else {
+        const accessToken = new AccessToken(null, null, req.signedCookies['AUTHTOKEN']);
+        accessToken.checkToken().then(result => {
+            if(result == true){
+                const user = new User(accessToken.user_id);
+                user.verifyUser().then(result => {
+                    if (result == true) {
+                        user.loadInfo().then(result => {
+                            res.render('index', {title: "Dashboard", message: "Murphy's Maths Control Panel", greeting: "Welcome, " + user.first_name + " " + user.last_name});
+                        }, err => {
+                            res.render('index', {title: "Dashboard", message: "Murphy's Maths Control Panel", greeting: "Error loading user information"});
+                        });
+                    } else {
+                        res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
+                    }
+                }, err => {
+                    res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
+                });
+            } else {
+                res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
+            }
+        }, err => {
+            res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
+        });
+    }
+}
+
 router.get('/', showLoginPage);
 
 router.post('/', performLogin);
+
+router.get('/dashboard', showDashboard);
+router.get('/dashboard*', showDashboard);
 
 module.exports = router;

@@ -11,6 +11,7 @@ const express = require('express');
 const connect = require('connect');
 const helmet = require('helmet');
 const argon2 = require('argon2');
+const cookieParser = require('cookie-parser');
 
 const routes = require('./routes/index');
 
@@ -23,6 +24,7 @@ app.set('view engine', 'pug');
 
 app.use(helmet());
 app.use(connect());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(express.urlencoded({
