@@ -123,22 +123,32 @@ const showDashboard = (req, res, next) => {
     // Disable cache
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
-    const renderDashboard = () => {
+    const renderDashboard = (user) => {
+        activeItem = '';
+        switch(req.path){
+            case '/dashboard':
+                activeItem = 'home';
+                break;
+            case '/dashboard/traffic':
+                activeItem = 'traffic';
+                break;
+            case '/dashboard/videos':
+                activeItem = 'videos';
+                break;
+            case '/dashboard/video-requests':
+                activeItem = 'video-requests';
+                break;
+        }
+
         const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
 
         Promise.all([logoutNoncePromise]).then(results => {
-            res.render('index', {
-                title: "Dashboard", 
-                message: "Murphy's Maths Control Panel", 
-                greeting: "Welcome", 
+            res.render(activeItem, {
+                title: "Dashboard",
+                activeItem: activeItem,
+                message: "Murphy's Maths Control Panel",
+                fullname: user.first_name + " " + user.last_name || "Unknown user",
                 logoutNonce: results[0]
-            });
-        }, errors => {
-            res.render('index', {
-                title: "Dashboard", 
-                message: "Murphy's Maths Control Panel", 
-                greeting: "Error", 
-                logoutNonce: ""
             });
         });
     };
@@ -152,9 +162,9 @@ const showDashboard = (req, res, next) => {
                 user.verifyUser().then(result => {
                     if (result == true) {
                         user.loadInfo().then(result => {
-                            renderDashboard();
+                            renderDashboard(user);
                         }, err => {
-                            renderDashboard();
+                            renderDashboard(undefined);
                         });
                     } else {
                         res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
