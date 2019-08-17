@@ -2,31 +2,32 @@
 extends layout
 
 block content
-    h1= message
-    .login-form-container
-        h2#login-form-error-message= error
-        form.login-form(method='POST' action='')
-            input.login-form-input#login-form-input-username(
-                type='text'
-                name='username'
-                placeholder='Username'
-                value=username
-            )
-            br
-            input.login-form-input#login-form-input-password(
-                type='password'
-                name='password'
-                placeholder='Password'
-            )
-            br
-            input.login-form-checkbox#login-form-checkbox-remember(
-                type='checkbox'
-                name='remember_me'
-                value='true'
-            )
-            label(for='login-form-checkbox-remember') Remember me
-            br
-            input.login-form-button#login-form-button-login(
-                type='submit'
-                value='Login'
-            )
+    .login-container
+        h1= message
+        .login-form-container
+            h2#login-form-error-message= error
+            form.login-form(method='POST' action='')
+                input.login-form-input#login-form-input-username(
+                    type='text'
+                    name='username'
+                    placeholder='Username'
+                    value=username
+                )
+                br
+                input.login-form-input#login-form-input-password(
+                    type='password'
+                    name='password'
+                    placeholder='Password'
+                )
+                br
+                input.login-form-checkbox#login-form-checkbox-remember(
+                    type='checkbox'
+                    name='remember_me'
+                    value='true'
+                )
+                label(for='login-form-checkbox-remember') Remember me
+                br
+                input.login-form-button#login-form-button-login(
+                    type='submit'
+                    value='Login'
+                )
