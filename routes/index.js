@@ -8,7 +8,8 @@ const crypto = require('crypto');
 const argon2 = require('argon2');
 require('datejs');
 
-const { Auth, AccessToken, User } = require('../core/auth');
+const { Auth, AccessToken, User, Nonce } = require('../core/auth');
+const app = require('../app');
 
 const showLoginPage = (req, res, next) => {
     const renderLoginPage = () => {
@@ -89,7 +90,58 @@ const performLogin = (req, res, next) => {
     });
 }
 
+const performLogout = (req, res, next) => {
+    Nonce.verifyNonce('user-logout', req.query.nonce, req.path).then(result => {
+        if(result == true){
+            if(req.signedCookies['AUTHTOKEN'] === undefined){
+                res.redirect(301, '/');
+            } else {
+                const accessToken = new AccessToken(null, null, req.signedCookies['AUTHTOKEN']);
+                accessToken.deleteToken().then(result => {
+                    res.cookie('AUTHTOKEN',{httpOnly: true, secure: true, signed: true, expires: Date.now()});
+                    res.redirect(301, '/');
+                }, err => {
+                    res.cookie('AUTHTOKEN',{httpOnly: true, secure: true, signed: true, expires: Date.now()});
+                    res.redirect(301, '/');
+                })
+            }
+        } else {
+            res.render('error-custom', {title: "Error", error: {
+                title: "Cannot log you out",
+                message: "The nonce verification has failed"
+            }});
+        }
+    }, err => {
+        res.render('error-custom', {title: "Error", error: {
+            title: "Cannot log you out",
+            message: "The nonce verification has failed"
+        }});
+    });
+}
+
 const showDashboard = (req, res, next) => {
+    // Disable cache
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+
+    const renderDashboard = () => {
+        const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+        Promise.all([logoutNoncePromise]).then(results => {
+            res.render('index', {
+                title: "Dashboard", 
+                message: "Murphy's Maths Control Panel", 
+                greeting: "Welcome", 
+                logoutNonce: results[0]
+            });
+        }, errors => {
+            res.render('index', {
+                title: "Dashboard", 
+                message: "Murphy's Maths Control Panel", 
+                greeting: "Error", 
+                logoutNonce: ""
+            });
+        });
+    };
     if(req.signedCookies['AUTHTOKEN'] === undefined){
         res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
     } else {
@@ -100,9 +152,9 @@ const showDashboard = (req, res, next) => {
                 user.verifyUser().then(result => {
                     if (result == true) {
                         user.loadInfo().then(result => {
-                            res.render('index', {title: "Dashboard", message: "Murphy's Maths Control Panel", greeting: "Welcome, " + user.first_name + " " + user.last_name});
+                            renderDashboard();
                         }, err => {
-                            res.render('index', {title: "Dashboard", message: "Murphy's Maths Control Panel", greeting: "Error loading user information"});
+                            renderDashboard();
                         });
                     } else {
                         res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
@@ -125,5 +177,7 @@ router.post('/', performLogin);
 
 router.get('/dashboard', showDashboard);
 router.get('/dashboard*', showDashboard);
+
+router.get('/logout', performLogout);
 
 module.exports = router;

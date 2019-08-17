@@ -15,12 +15,13 @@ const cookieParser = require('cookie-parser');
 
 const routes = require('./routes/index');
 
-const app = express();
+const app = module.exports = express();
 
 app.set('title', "Murphy's Maths Control Panel");
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
+app.set('etag', false);
 
 app.use(helmet());
 app.use(connect());
