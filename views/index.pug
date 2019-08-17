@@ -4,3 +4,4 @@ extends layout
 block content
     h1= message
     h2= greeting
+    a.logout-button(href='/logout?nonce=' + logoutNonce) Logout

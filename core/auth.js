@@ -438,4 +438,182 @@ module.exports.AccessToken = class AccessToken {
             });
         });
     }
+
+    deleteToken(){
+        return new Promise((resolve, reject) => {
+            // SHA-256 the access token
+            const hash = crypto.createHash('sha256').update(this.id).digest('hex');
+
+            // Create a connection to the database
+            const connection = db.getConnection();
+
+            // Open the connection
+            connection.connect();
+
+            // Check if the access token exists
+            connection.query("SELECT * FROM access_tokens WHERE access_token = UNHEX(" + connection.escape(hash) + ")",
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                if(results.length > 0){
+                    // Delete the access token
+
+                    // Create a connection to the database
+                    const connection = db.getConnection('delete');
+
+                    // Open the connection
+                    connection.connect();
+
+                    // Execute the delete query
+                    connection.query("DELETE FROM access_tokens WHERE access_token = UNHEX(" + connection.escape(hash) + ")",
+                    (error, results, fields) => {
+                        // Close the connection
+                        connection.end();
+
+                        if (error) reject(error);
+
+                        resolve(true);
+                    });
+                }
+            });
+        });
+    }
+}
+
+module.exports.Nonce = class Nonce {
+    static createNonce(name, url){
+        return new Promise((resolve, reject) => {
+            // Generate an ID
+            let rawID = crypto.randomBytes(8).toString('hex');
+
+            // Encrypt the ID
+            let id = crypto.createHash('sha256').update(rawID).digest('hex');
+
+            // Generate the expiry date
+            const expiry = Date.today().setTimeToNow().addHours(24).toString('u').slice(0, -1);
+
+            // Check if the ID is already in the database
+            const checkID = idFound => {
+                return new Promise((resolve, reject) => {
+                    // Create a connection to the database
+                    const connection = db.getConnection();
+
+                    // Open the connection
+                    connection.connect();
+
+                    // Execute the query to check for the ID
+                    connection.query("SELECT COUNT(*) AS IDCount FROM nonces WHERE ID = UNHEX(" + connection.escape(id) + ")",
+                    (error, results, fields) => {
+                        // Close the connection
+                        connection.end();
+
+                        if (error) reject(error);
+
+                        // If the ID is in the database, generate a new ID and continue the loop
+                        if(results[0].IDCount > 0){
+                            id = crypto.randomBytes(8).toString('hex');
+                            resolve(true);
+                        } else {
+                            // End the loop
+                            resolve(false);
+                        }
+                    });
+                });
+            }
+
+            // Create a loop
+            ((data, condition, action) => {
+                var whilst = data => {
+                    // If ID is not in the database, end the loop
+                    return condition(data) ? action(data).then(whilst) : Promise.resolve(data);
+                }
+                return whilst(data);
+            })(true, idFound => idFound, checkID).then(idFound => {
+                // Create a connection to the database
+                const connection = db.getConnection('modify');
+
+                // Open the connection
+                connection.connect();
+
+                // Execute the query to insert the nonce into the database
+                connection.query("INSERT INTO nonces VALUES("
+                + "UNHEX(" + connection.escape(id) + "), "
+                + connection.escape(name) + ", "
+                + connection.escape(url) + ", "
+                + connection.escape(expiry) + ")",
+                (error, results, fields) => {
+                    // Close the connection
+                    connection.end();
+
+                    if (error) reject(error);
+
+                    resolve(rawID);
+                });
+            });
+        });
+    }
+
+    static verifyNonce(name, id, url){
+        return new Promise((resolve, reject) => {
+            // SHA-256 the ID
+            const hash = crypto.createHash('sha256').update(id).digest('hex');
+
+            // Create a connection to the database
+            const connection = db.getConnection();
+
+            // Open the connection
+            connection.connect();
+
+            // Check if the nonce is in the database
+            connection.query("SELECT * FROM nonces WHERE id = UNHEX(" + connection.escape(hash) + ")",
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                // If the nonce is not found, return an error
+                if(results === undefined || results.length == 0){
+                    reject("Nonce not found");
+                } else {
+                    // If nonce matches the name
+                    if(results[0].name != name){
+                        reject("Nonce invalid");
+                    } else {
+                        // If nonce has a different URL, return an error
+                        if(results[0].url != url){
+                            reject("Nonce invalid");
+                        } else {
+                            // If nonce has expired, return an error
+                            if(Date.parse(results[0].expires) < Date.today()){
+                                reject("Nonce has expired");
+                            } else {             
+                                // Delete the nonce
+
+                                // Create a connection to the database
+                                const connection = db.getConnection('delete');
+
+                                // Open the connection
+                                connection.connect();
+
+                                // Execute the delete query
+                                connection.query("DELETE FROM nonces WHERE id = UNHEX(" + connection.escape(hash) + ")",
+                                (error, results, fields) => {
+                                    // Close the connection
+                                    connection.end();
+
+                                    if (error) reject(error);
+
+                                    resolve(true);
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    }
 }
