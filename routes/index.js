@@ -70,8 +70,13 @@ const performLogin = (req, res, next) => {
                         // ...otherwise the cookie will expire when the browsing session ends
                         res.cookie('AUTHTOKEN', accessToken.id, {httpOnly: true, secure: true, signed: true});
                     }
+
                     // Redirect the user to the dashboard
-                    res.redirect(301, '/dashboard');
+                    if(req.query.continue === undefined) {
+                        res.redirect(301, '/dashboard');
+                    } else {
+                        res.redirect(301, decodeURIComponent(req.query.continue));
+                    }
                 }, err => console.log(err));
             }
         }, err => {
