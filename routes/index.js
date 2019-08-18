@@ -10,6 +10,7 @@ require('datejs');
 
 const { Auth, AccessToken, User, Nonce } = require('../core/auth');
 const app = require('../app');
+const dashboard = require('../routes/dashboard');
 
 const showLoginPage = (req, res, next) => {
     const renderLoginPage = () => {
@@ -119,166 +120,25 @@ const performLogout = (req, res, next) => {
     });
 }
 
-const initDashboard = (req, res, next) => {
-    // Disable cache
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-
-    if(req.signedCookies['AUTHTOKEN'] === undefined){
-        res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
-    } else {
-        const accessToken = new AccessToken(null, null, req.signedCookies['AUTHTOKEN']);
-        accessToken.checkToken().then(result => {
-            if(result == true){
-                const user = new User(accessToken.user_id);
-                user.verifyUser().then(result => {
-                    if (result == true) {
-                        user.loadInfo().then(result => {
-                            res.locals.user = user;
-                            next();
-                        }, err => {
-                            next();
-                        });
-                    } else {
-                        res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
-                    }
-                }, err => {
-                    res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
-                });
-            } else {
-                res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
-            }
-        }, err => {
-            res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
-        });
-    }
-}
-
-const showDashboard = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'home';
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
-
-const showTraffic = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'traffic'
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Traffic | Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
-
-const showVideos = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'videos'
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Videos | Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
-
-const showVideoRequests = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'video-requests'
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Video Requests | Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
-
-const showProfile = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'profile'
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Profile | Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
-
-const showHelp = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'help'
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Help | Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
-
-const showSettings = (req, res, next) => {
-    let user = res.locals.user;
-    let activeItem = 'settings'
-
-    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-    Promise.all([logoutNoncePromise]).then(results => {
-        res.render(activeItem, {
-            title: "Settings | Dashboard",
-            activeItem: activeItem,
-            fullname: user.first_name + " " + user.last_name || "Unknown user",
-            logoutNonce: results[0]
-        });
-    });
-}
 
 router.get('/', showLoginPage);
 
 router.post('/', performLogin);
 
-router.get('/dashboard*', initDashboard);
+router.get('/dashboard*', dashboard.initDashboard);
+router.post('/dashboard*', dashboard.initDashboard);
 
-router.get('/dashboard', showDashboard);
-router.get('/dashboard/traffic', showTraffic);
-router.get('/dashboard/videos', showVideos);
-router.get('/dashboard/video-requests', showVideoRequests);
+router.get('/dashboard', dashboard.showDashboard);
+router.get('/dashboard/traffic', dashboard.showTraffic);
+router.get('/dashboard/videos', dashboard.showVideos);
+router.get('/dashboard/video-requests', dashboard.showVideoRequests);
 
-router.get('/dashboard/profile', showProfile);
-router.get('/dashboard/help', showHelp);
-router.get('/dashboard/settings', showSettings);
+router.get('/dashboard/profile', dashboard.showProfile);
+router.get('/dashboard/help', dashboard.showHelp);
+router.get('/dashboard/settings', dashboard.showSettings);
+
+router.get('/dashboard/profile/change-password', dashboard.showProfileChangePassword);
+router.post('/dashboard/profile/change-password', dashboard.performProfileChangePassword);
 
 router.get('/logout', performLogout);
 

@@ -3,3 +3,28 @@ extends index
 
 block dashboardContent
     h1 Profile
+    .container
+        h2 General
+        form(action="")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="firstName") First Name
+                .col-sm-10
+                    input#firstName.form-control(type="text" placeholder="First Name" value=firstName)
+            .form-group.row
+                label.col-sm-2.col-form-label(for="lastName") Last Name
+                .col-sm-10
+                    input#lastName.form-control(type="text" placeholder="Last Name" value=lastName)
+            .form-group.row
+                label.col-sm-2.col-form-label(for="username") Username
+                .col-sm-10
+                    input#username.form-control(type="text" placeholder="Username" value=username)
+            .form-group.row
+                label.col-sm-2.col-form-label(for="emailAddress") Email Address
+                .col-sm-10
+                    input#emailAddress.form-control(type="email" placeholder="Email Address" value=email)
+            .form-group.row
+                .col-sm-10
+                    button.btn.btn-primary(type="submit") Save
+    .container
+        h2 Password
+        a.btn.btn-primary(href='/dashboard/profile/change-password' role='button') Change Password

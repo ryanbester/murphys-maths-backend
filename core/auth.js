@@ -142,7 +142,7 @@ module.exports.Auth = class Auth {
                     }
                 }, err => {
                     reject(err);
-                })
+                });
             } else {
                 // Declare the variables
                 if(options['hash'] === undefined){
@@ -179,13 +179,98 @@ module.exports.Auth = class Auth {
         });
     }
 
-    static savePasswordToDatabase(user_id, options){
+    static savePasswordToDatabase(options){
         return new Promise((resolve, reject) => {
-            if(options['all']){
+            const savePassword = (hash, saltEncrypted, iv, user_id) => {
+                return new Promise((resolve, reject) => {
+                    // Create a connection to the database
+                    const connection = db.getConnection('modify');
 
-            } else {
+                    // Open the connection
+                    connection.connect();
 
+                    // Execute the query to insert the new password into the database
+                    connection.query("UPDATE passwd "
+                    + "SET password = " + connection.escape(hash) + ", "
+                    + "salt = UNHEX(" + connection.escape(saltEncrypted) + "), "
+                    + "salt_iv = UNHEX(" + connection.escape(iv.toString('hex')) + ") "
+                    + "WHERE user_id = " + connection.escape(user_id),
+                    (error, results, fields) => {
+                        // Close the connection
+                        connection.end();
+
+                        if (error) reject(error);
+
+                        resolve(true);
+                    });
+                });
             }
+            if(options['all']){
+                // Declare the variables in the order returned from the encryptPassword function
+                if(options['all'][0] === undefined){
+                    reject("Hash is not set");
+                }
+                const hash = options['all'][0];
+
+                if(options['all'][1] === undefined){
+                    reject("Encrypted salt is not set");
+                }
+                const saltEncrypted = options['all'][1];
+
+                if(options['all'][2] === undefined){
+                    reject("Salt IV is not set");
+                }
+                const iv = options['all'][2];
+
+                if(options['all'][3] === undefined){
+                    reject("User ID is not set");
+                }
+                const user_id = options['all'][3];
+
+                // Verify the password
+                savePassword(hash, saltEncrypted, iv, user_id).then(result => {
+                    if(result){
+                        resolve(result);
+                    } else {
+                        resolve(false);
+                    }
+                }, err => {
+                    reject(err);
+                });
+            } else {
+                // Declare the variables
+                if(options['hash'] === undefined){
+                    reject("Hash is not set");
+                }
+                const hash = options['hash'];
+
+                if(options['saltEncrypted'] === undefined){
+                    reject("Salt is not set");
+                }
+                const saltEncrypted = options['saltEncrypted'];
+
+                if(options['iv'] === undefined){
+                    reject("Salt IV is not set");
+                }
+                const iv = options['iv'];
+
+                if(options['user_id'] === undefined){
+                    reject("User ID is not set");
+                }
+                const user_id = options['user_id'];
+
+                // Verify the password
+                savePassword(hash, saltEncrypted, iv, user_id).then(result => {
+                    if(result){
+                        resolve(result);
+                    } else {
+                        resolve(false);
+                    }
+                }, err => {
+                    reject(err);
+                })
+            }
+
         });
     }
 
