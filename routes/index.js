@@ -119,39 +119,10 @@ const performLogout = (req, res, next) => {
     });
 }
 
-const showDashboard = (req, res, next) => {
+const initDashboard = (req, res, next) => {
     // Disable cache
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
 
-    const renderDashboard = (user) => {
-        activeItem = '';
-        switch(req.path){
-            case '/dashboard':
-                activeItem = 'home';
-                break;
-            case '/dashboard/traffic':
-                activeItem = 'traffic';
-                break;
-            case '/dashboard/videos':
-                activeItem = 'videos';
-                break;
-            case '/dashboard/video-requests':
-                activeItem = 'video-requests';
-                break;
-        }
-
-        const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
-
-        Promise.all([logoutNoncePromise]).then(results => {
-            res.render(activeItem, {
-                title: "Dashboard",
-                activeItem: activeItem,
-                message: "Murphy's Maths Control Panel",
-                fullname: user.first_name + " " + user.last_name || "Unknown user",
-                logoutNonce: results[0]
-            });
-        });
-    };
     if(req.signedCookies['AUTHTOKEN'] === undefined){
         res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
     } else {
@@ -162,9 +133,10 @@ const showDashboard = (req, res, next) => {
                 user.verifyUser().then(result => {
                     if (result == true) {
                         user.loadInfo().then(result => {
-                            renderDashboard(user);
+                            res.locals.user = user;
+                            next();
                         }, err => {
-                            renderDashboard(undefined);
+                            next();
                         });
                     } else {
                         res.redirect(301, '/?continue=' + encodeURIComponent(req.url));
@@ -181,12 +153,132 @@ const showDashboard = (req, res, next) => {
     }
 }
 
+const showDashboard = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'home';
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
+const showTraffic = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'traffic'
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Traffic | Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
+const showVideos = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'videos'
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Videos | Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
+const showVideoRequests = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'video-requests'
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Video Requests | Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
+const showProfile = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'profile'
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Profile | Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
+const showHelp = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'help'
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Help | Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
+const showSettings = (req, res, next) => {
+    let user = res.locals.user;
+    let activeItem = 'settings'
+
+    const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+
+    Promise.all([logoutNoncePromise]).then(results => {
+        res.render(activeItem, {
+            title: "Settings | Dashboard",
+            activeItem: activeItem,
+            fullname: user.first_name + " " + user.last_name || "Unknown user",
+            logoutNonce: results[0]
+        });
+    });
+}
+
 router.get('/', showLoginPage);
 
 router.post('/', performLogin);
 
+router.get('/dashboard*', initDashboard);
+
 router.get('/dashboard', showDashboard);
-router.get('/dashboard*', showDashboard);
+router.get('/dashboard/traffic', showTraffic);
+router.get('/dashboard/videos', showVideos);
+router.get('/dashboard/video-requests', showVideoRequests);
+
+router.get('/dashboard/profile', showProfile);
+router.get('/dashboard/help', showHelp);
+router.get('/dashboard/settings', showSettings);
 
 router.get('/logout', performLogout);
 
