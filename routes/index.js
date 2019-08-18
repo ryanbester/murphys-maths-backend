@@ -134,11 +134,13 @@ router.get('/dashboard/videos', dashboard.showVideos);
 router.get('/dashboard/video-requests', dashboard.showVideoRequests);
 
 router.get('/dashboard/profile', dashboard.showProfile);
-router.get('/dashboard/help', dashboard.showHelp);
-router.get('/dashboard/settings', dashboard.showSettings);
+router.post('/dashboard/profile', dashboard.performSaveProfile);
 
 router.get('/dashboard/profile/change-password', dashboard.showProfileChangePassword);
 router.post('/dashboard/profile/change-password', dashboard.performProfileChangePassword);
+
+router.get('/dashboard/help', dashboard.showHelp);
+router.get('/dashboard/settings', dashboard.showSettings);
 
 router.get('/logout', performLogout);
 

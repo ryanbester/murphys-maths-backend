@@ -56,6 +56,7 @@ exports.showDashboard = (req, res, next) => {
             title: "Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             logoutNonce: results[0]
         });
     });
@@ -72,6 +73,7 @@ exports.showTraffic = (req, res, next) => {
             title: "Traffic | Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             logoutNonce: results[0]
         });
     });
@@ -88,6 +90,7 @@ exports.showVideos = (req, res, next) => {
             title: "Videos | Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             logoutNonce: results[0]
         });
     });
@@ -104,6 +107,7 @@ exports.showVideoRequests = (req, res, next) => {
             title: "Video Requests | Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             logoutNonce: results[0]
         });
     });
@@ -111,22 +115,161 @@ exports.showVideoRequests = (req, res, next) => {
 
 exports.showProfile = (req, res, next) => {
     let user = res.locals.user;
-    let activeItem = 'profile'
+    let activeItem = 'profile';
 
     const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+    const logoutEverywhereNoncePromise = Nonce.createNonce('user-logout-everywhere', '/dashboard/profile/logout-everywhere');
 
-    Promise.all([logoutNoncePromise]).then(results => {
+    Promise.all([logoutNoncePromise, logoutEverywhereNoncePromise]).then(results => {
         res.render(activeItem, {
             title: "Profile | Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             firstName: user.first_name,
             lastName: user.last_name,
-            username: user.username,
+            newUsername: user.username,
             email: user.email_address,
-            logoutNonce: results[0]
+            logoutNonce: results[0],
+            logoutEverywhereNonce: results[1]
         });
     });
+}
+
+exports.performSaveProfile = (req, res, next) => {
+    let user = res.locals.user;
+
+    let firstName = req.body.firstName;
+    let lastName = req.body.lastName;
+    let newUsername = req.body.newUsername;
+    let email = req.body.email;
+    
+    const showError = (error, invalidFields) => {
+        let firstNameInvalid = false;
+        let lastNameInvalid = false;
+        let usernameInvalid = false;
+        let emailInvalid = false;
+
+        if(invalidFields != undefined){
+            if(invalidFields.includes('firstName')){
+                firstNameInvalid = true;
+            }
+            if(invalidFields.includes('lastName')){
+                lastNameInvalid = true;
+            }
+            if(invalidFields.includes('username')){
+                usernameInvalid = true;
+            }
+            if(invalidFields.includes('email')){
+                emailInvalid = true;
+            }
+        }
+
+        let activeItem = 'profile';
+
+        const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+        const logoutEverywhereNoncePromise = Nonce.createNonce('user-logout-everywhere', '/dashboard/profile/logout-everywhere');
+
+        Promise.all([logoutNoncePromise, logoutEverywhereNoncePromise]).then(results => {
+            res.render(activeItem, {
+                title: "Profile | Dashboard",
+                activeItem: activeItem,
+                fullname: user.first_name + " " + user.last_name || "Unknown user",
+                username: user.username,
+                firstName: firstName,
+                lastName: lastName,
+                newUsername: newUsername,
+                email: email,
+                error: error,
+                firstNameInvalid: firstNameInvalid,
+                lastNameInvalid: lastNameInvalid,
+                usernameInvalid: usernameInvalid,
+                emailInvalid: emailInvalid,
+                logoutNonce: results[0],
+                logoutEverywhereNonce: results[1]
+            });
+        });
+    }
+
+    const showSuccess = (message) => {
+        let activeItem = 'profile';
+
+        const logoutNoncePromise = Nonce.createNonce('user-logout', '/logout');
+        const logoutEverywhereNoncePromise = Nonce.createNonce('user-logout-everywhere', '/dashboard/profile/logout-everywhere');
+
+        Promise.all([logoutNoncePromise, logoutEverywhereNoncePromise]).then(results => {
+            res.render(activeItem, {
+                title: "Profile | Dashboard",
+                activeItem: activeItem,
+                fullname: user.first_name + " " + user.last_name || "Unknown user",
+                username: user.username,
+                firstName: firstName,
+                lastName: lastName,
+                newUsername: newUsername,
+                email: email,
+                success: message,
+                logoutNonce: results[0],
+                logoutEverywhereNonce: results[1]
+            });
+        });
+    }
+
+    // Validate fields
+    invalidFields = [];
+
+    if(firstName.length < 1){
+        invalidFields.push('firstName');
+    }
+
+    if(lastName.length < 1){
+        invalidFields.push('lastName');
+    }
+
+    if(newUsername.length  < 1){
+        invalidFields.push('username');
+    }
+
+    if(!(function(email){
+        var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(String(email).toLowerCase());
+    })(email)){
+        invalidFields.push('email');
+    }
+
+    if(invalidFields.length > 0){
+        showError(invalidFields.length + " fields are invalid", invalidFields);
+    } else {
+        const performSave = () => {
+            user.first_name = firstName;
+            user.last_name = lastName;
+            user.username = newUsername;
+            user.email_address = email;
+
+            user.saveUser().then(result => {
+                if(result == true){
+                    showSuccess("Successfully saved your information");
+                } else {
+                    showError("Error saving your information");
+                }
+            }, err => {
+                showError("Error saving your information");
+            });
+        }
+
+        if(newUsername != user.username){
+            User.usernameTaken(newUsername).then(result => {
+                if(result == true){
+                    showError("1 fields are invalid", ['username']);
+                } else {
+                    performSave();
+                }
+            }, err => {
+                showError("1 fields are invalid", ['username']);
+            });
+        } else {
+            performSave();
+        }
+    }
 }
 
 exports.showProfileChangePassword = (req, res, next) => {
@@ -208,6 +351,7 @@ exports.showHelp = (req, res, next) => {
             title: "Help | Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             logoutNonce: results[0]
         });
     });
@@ -224,6 +368,7 @@ exports.showSettings = (req, res, next) => {
             title: "Settings | Dashboard",
             activeItem: activeItem,
             fullname: user.first_name + " " + user.last_name || "Unknown user",
+            username: user.username,
             logoutNonce: results[0]
         });
     });

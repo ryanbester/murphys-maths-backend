@@ -5,26 +5,37 @@ block dashboardContent
     h1 Profile
     .container
         h2 General
-        form(action="")
+        if error
+            .alert.alert-danger(role="alert")= error
+        if success
+            .alert.alert-success(role="alert")= success
+        form(action="" method="post")
             .form-group.row
                 label.col-sm-2.col-form-label(for="firstName") First Name
                 .col-sm-10
-                    input#firstName.form-control(type="text" placeholder="First Name" value=firstName)
+                    input#firstName.form-control(class=(firstNameInvalid ? "is-invalid" : undefined) type="text" name="firstName" placeholder="First Name" value=firstName)
+                    .invalid-feedback Enter your first name
             .form-group.row
                 label.col-sm-2.col-form-label(for="lastName") Last Name
                 .col-sm-10
-                    input#lastName.form-control(type="text" placeholder="Last Name" value=lastName)
+                    input#lastName.form-control(class=(lastNameInvalid ? "is-invalid" : undefined) type="text" name="lastName" placeholder="Last Name" value=lastName)
+                    .invalid-feedback Enter your last name
             .form-group.row
                 label.col-sm-2.col-form-label(for="username") Username
                 .col-sm-10
-                    input#username.form-control(type="text" placeholder="Username" value=username)
+                    input#username.form-control(class=(usernameInvalid ? "is-invalid" : undefined) type="text" name="newUsername" placeholder="Username" value=newUsername)
+                    .invalid-feedback This username has been taken
             .form-group.row
                 label.col-sm-2.col-form-label(for="emailAddress") Email Address
                 .col-sm-10
-                    input#emailAddress.form-control(type="email" placeholder="Email Address" value=email)
+                    input#emailAddress.form-control(class=(emailInvalid ? "is-invalid" : undefined) type="email" name="email" placeholder="Email Address" value=email)
+                    .invalid-feedback Enter a valid email address
             .form-group.row
                 .col-sm-10
                     button.btn.btn-primary(type="submit") Save
     .container
         h2 Password
         a.btn.btn-primary(href='/dashboard/profile/change-password' role='button') Change Password
+    .container
+        h2 Security
+        a.btn.btn-primary(href='/dashboard/profile/logout-everywhere?nonce=' + logoutEverywhereNonce role='button') Logout of all my devices

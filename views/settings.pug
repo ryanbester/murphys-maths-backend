@@ -3,3 +3,87 @@ extends index
 
 block dashboardContent
     h1 Settings
+    .container
+        h2 API
+        form(action="" method="post")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="frontEndSiteURL") Front End Site URL
+                .col-sm-10
+                    input#frontEndSiteURL.form-control(type="url" name="frontEndSiteURL" placeholder="Front End Site URL" value=frontEndSiteURL aria-describedby="frontEndSiteURLHelp")
+                    small#frontEndSiteURLHelp.form-text.text-muted Only this URL will have access to the API
+            h3 Caching
+            .form-group.row
+                label.col-sm-2.form-check-label(for="enableCache") Cache API responses
+                .col-sm-10
+                    .form-check
+                        input#enableCache.form-check-input(type="checkbox" value="")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="cacheLifetime") Cache lifetime (days)
+                .col-sm-10
+                    input#cacheLifetime.form-control(type="number" name="cacheLifetime" placeholder="Cache Lifetime" value=cacheLifetime aria-describedby="cacheLifetimeHelp")
+                    small#cacheLifetimeHelp.form-text.text-muted The number of days before the cache will expire
+            .form-group.row
+                .col-sm-2
+                .col-sm-10
+                    a.btn.btn-primary(href='#' role="button") Purge Cache
+            h3 Rate Limiting
+            .form-group.row
+                label.col-sm-2.form-check-label(for="enableRateLimiting") Enable rate limiting
+                .col-sm-10
+                    .form-check
+                        input#enableRateLimiting.form-check-input(type="checkbox" value="")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="rateLimitingLimit") Limit
+                .col-sm-10
+                    input#rateLimitingLimit.form-control(type="number" name="rateLimitingLimit" placeholder="Limit" value=rateLimitingLimit aria-describedby="rateLimitingLimitHelp")
+                    small#rateLimitingLimitHelp.form-text.text-muted The number of requests that can be made per minute
+                    .form-check
+                        input#rateLimitingLimitModeSingle.form-check-input(type="radio" name="rateLimitingLimitMode" value="single" aria-described="rateLimitingLimitModeHelp" checked)
+                        label.form-check-label(for="rateLimitingLimitModeSingle") Each endpoint
+                    .form-check
+                        input#rateLimitingLimitModeMultiple.form-check-input(type="radio" name="rateLimitingLimitMode" value="multiple" aria-described="rateLimitingLimitModeHelp")
+                        label.form-check-label(for="rateLimitingLimitModeMultiple") All endpoints
+                    small#rateLimitingLimitModeHelp.form-text.text-muted Whether the limit is applied to each endpoint all collectively to all endpoints
+            .form-group.row
+                .col-sm-2
+                .col-sm-10
+                    a.btn.btn-primary(href='#' role="button") Reset Counter
+            .form-group.row
+                .col-sm-10
+                    button.btn.btn-primary(type="submit") Save
+    .container
+        h2 Users
+    .container
+        h2 Security
+        form(action="" method="post")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="accessTokenLifetime") User session lifetime
+                .col-sm-10
+                    input#accessTokenLifetime.form-control(type="number" name="accessTokenLifetime" placeholder="User session lifetime" value=accessTokenLifetime aria-describedby="accessTokenLifetimeHelp")
+                    small#accessTokenLifetimeHelp.form-text.text-muted The number of minutes a user can stay logged in for
+            .form-group.row
+                .col-sm-2
+                .col-sm-10
+                    a.btn.btn-primary(href='#' role="button") Logout all users
+            .form-group.row
+                .col-sm-2
+                .col-sm-10
+                    a.btn.btn-primary(href='#' role="button") Delete expired access tokens
+            .form-group.row
+                .col-sm-2
+                .col-sm-10
+                    a.btn.btn-primary(href='#' role="button") Delete expired nonces
+            .form-group.row
+                    .col-sm-10
+                        button.btn.btn-primary(type="submit") Save
+    .container
+        h2 Connections
+        form(action="" method="post")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="YouTubeAPIKey") YouTube API Key
+                .col-sm-10
+                    input#YouTubeAPIKey.form-control(type="url" name="YouTubeAPIKey" placeholder="YouTube API Key" value=YouTubeAPIKey aria-describedby="YouTubeAPIKeyHelp")
+                    small#YouTubeAPIKeyHelp.form-text.text-muted The key used to obtain the video list from YouTube
+            .form-group.row
+                    .col-sm-10
+                        button.btn.btn-primary(type="submit") Save
