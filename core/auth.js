@@ -400,6 +400,62 @@ module.exports.User = class User {
             });
         });
     }
+
+    saveUser() {
+        return new Promise((resolve, reject) => {
+            if(this.user_id === undefined){
+                reject("User ID not set");
+            }
+
+            // Create a connection to the database
+            const connection = db.getConnection('modify');
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the query to update the user information
+            connection.query("UPDATE users "
+            + "SET username = " + connection.escape(this.username) + ", "
+            + "first_name = " + connection.escape(this.first_name) + ", "
+            + "last_name = " + connection.escape(this.last_name) + ", "
+            + "email_address = " + connection.escape(this.email_address)
+            + " WHERE user_id = " + connection.escape(this.user_id),
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
+            });
+        });
+    }
+
+    static usernameTaken(username) {
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection();
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the query to check for the username
+            connection.query("SELECT COUNT(*) AS UserCount FROM users WHERE username = " + connection.escape(username),
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                // If the username is in the database, return true
+                if(results[0].UserCount > 0){
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            })
+        });
+    }
 }
 
 module.exports.AccessToken = class AccessToken {
