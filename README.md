@@ -1,7 +1,5 @@
 # Murphys Maths Backend
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/22b77e32672d45dfaae59c7d072d4c3a)](https://app.codacy.com/app/ryanbester/murphys-maths-backend?utm_source=github.com&utm_medium=referral&utm_content=ryanbester/murphys-maths-backend&utm_campaign=Badge_Grade_Settings)
-
 ![](https://travis-ci.org/ryanbester/murphys-maths-backend.svg?branch=master)
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/a44c0481c07c45f2b1b7289da764a5a3)](https://www.codacy.com/app/ryanbester/murphys-maths-backend?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ryanbester/murphys-maths-backend&amp;utm_campaign=Badge_Grade)
