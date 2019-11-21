@@ -14,6 +14,7 @@ const argon2 = require('argon2');
 const cookieParser = require('cookie-parser');
 
 const routes = require('./routes/index');
+const Util = require('./core/util');
 
 const app = module.exports = express();
 
@@ -38,6 +39,7 @@ const options = {
 };
 
 app.use(function(req, res, next){
+	res.locals.tld = Util.get_tld();
 	res.locals.app = app;
 	next();
 });

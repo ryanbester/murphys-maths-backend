@@ -53,6 +53,33 @@ block dashboardContent
                     button.btn.btn-primary(type="submit") Save
     .container
         h2 Users
+        a.btn.btn-primary.mb-2(href='add-user/' role="button") Add User
+        if users
+            if users.length > 0
+                table.table.table-bordered
+                    thead
+                        th(scope='col') #
+                        th(scope='col') First Name
+                        th(scope='col') Last Name
+                        th(scope='col') Username
+                        th(scope='col') Email
+                    tbody
+                        each user in users
+                            tr
+                                th(scope='row')
+                                    a(href='user-' + user.user_id + '/')= user.user_id
+                                td
+                                    a(href='user-' + user.user_id + '/')= user.first_name
+                                td
+                                    a(href='user-' + user.user_id + '/')= user.last_name
+                                td
+                                    a(href='user-' + user.user_id + '/')= user.username
+                                td
+                                    a(href='user-' + user.user_id + '/')= user.email_address
+            else
+                p No users
+        else
+            p No users
     .container
         h2 Security
         form(action="" method="post")

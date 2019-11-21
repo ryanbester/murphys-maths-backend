@@ -2,14 +2,18 @@
 extends index
 
 block dashboardContent
-    h1 Profile
+    h1 Add User
     .container
-        h2 General
         if error
             .alert.alert-danger(role="alert")= error
         if success
             .alert.alert-success(role="alert")= success
         form(action="" method="post")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="emailAddress") Email Address
+                .col-sm-10
+                    input#emailAddress.form-control(class=(emailInvalid ? "is-invalid" : undefined) type="email" name="email" placeholder="Email Address" value=email)
+                    .invalid-feedback Enter a valid email address
             .form-group.row
                 label.col-sm-2.col-form-label(for="firstName") First Name
                 .col-sm-10
@@ -26,16 +30,14 @@ block dashboardContent
                     input#username.form-control(class=(usernameInvalid ? "is-invalid" : undefined) type="text" name="newUsername" placeholder="Username" value=newUsername)
                     .invalid-feedback This username has been taken
             .form-group.row
-                label.col-sm-2.col-form-label(for="emailAddress") Email Address
+                label.col-sm-2.col-form-label(for="password") Password
                 .col-sm-10
-                    input#emailAddress.form-control(class=(emailInvalid ? "is-invalid" : undefined) type="email" name="email" placeholder="Email Address" value=email)
-                    .invalid-feedback Enter a valid email address
+                    input#password.form-control(type="password" name="password" placeholder="Password")
+            .form-group.row
+                label.col-sm-2.col-form-label(for="confirmPassword") Confirm Password
+                .col-sm-10
+                    input#confirmPassword.form-control(type="password" name="confirmPassword" placeholder="Confirm Password")
             .form-group.row
                 .col-sm-10
+                    input(type='hidden' name='nonce' value=formNonce)
                     button.btn.btn-primary(type="submit") Save
-    .container
-        h2 Password
-        a.btn.btn-primary(href='/dashboard/profile/change-password/' role='button') Change Password
-    .container
-        h2 Security
-        a.btn.btn-primary(href='/dashboard/profile/logout-everywhere/' role='button') Logout of all my devices
