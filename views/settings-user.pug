@@ -2,7 +2,7 @@
 extends index
 
 block dashboardContent
-    h1 Profile
+    h1 #{targetUser.first_name} #{targetUser.last_name}
     .container
         h2 General
         if error
@@ -35,7 +35,10 @@ block dashboardContent
                     button.btn.btn-primary(type="submit") Save
     .container
         h2 Password
-        a.btn.btn-primary(href='/dashboard/profile/change-password/' role='button') Change Password
+        a.btn.btn-primary(href='/settings/user-' + targetUser.user_id + '/change-password/' role='button') Change Password
     .container
         h2 Security
-        a.btn.btn-primary(href='/dashboard/profile/logout-everywhere/' role='button') Logout of all my devices
+        a.btn.btn-primary(href='/settings/user-' + targetUser.user_id + '/logout-everywhere/' role='button') Logout of all devices
+    .container
+        h2 Danger Zone
+        a.btn.btn-primary.btn-danger(href='/settings/user-' + targetUser.user_id + '/delete-user/?nonce=' + deleteUserNonce role='button') Delete User

@@ -189,19 +189,44 @@ module.exports.Auth = class Auth {
                     // Open the connection
                     connection.connect();
 
-                    // Execute the query to insert the new password into the database
-                    connection.query("UPDATE passwd "
-                    + "SET password = " + connection.escape(hash) + ", "
-                    + "salt = UNHEX(" + connection.escape(saltEncrypted) + "), "
-                    + "salt_iv = UNHEX(" + connection.escape(iv.toString('hex')) + ") "
-                    + "WHERE user_id = " + connection.escape(user_id),
+                    connection.query("SELECT COUNT(*) AS UserCount FROM passwd WHERE user_id = " + connection.escape(user_id),
                     (error, results, fields) => {
-                        // Close the connection
-                        connection.end();
+                        if (error) {
+                            connection.end();
+                            reject(error);
+                        } else {
+                            if(results[0].UserCount > 0){
+                                // Execute the query to update the existing password in the database
+                                connection.query("UPDATE passwd "
+                                + "SET password = " + connection.escape(hash) + ", "
+                                + "salt = UNHEX(" + connection.escape(saltEncrypted) + "), "
+                                + "salt_iv = UNHEX(" + connection.escape(iv.toString('hex')) + ") "
+                                + "WHERE user_id = " + connection.escape(user_id),
+                                (error, results, fields) => {
+                                    // Close the connection
+                                    connection.end();
 
-                        if (error) reject(error);
+                                    if (error) reject(error);
 
-                        resolve(true);
+                                    resolve(true);
+                                });
+                            } else {
+                                // Execute the query to insert the new password into the database
+                                connection.query("INSERT INTO passwd VALUES("
+                                + connection.escape(user_id) + ", "
+                                + connection.escape(hash) + ", "
+                                + "UNHEX(" + connection.escape(saltEncrypted) + "), "
+                                + "UNHEX(" + connection.escape(iv.toString('hex')) + "))",
+                                (error, results, fields) => {
+                                    // Close the connection
+                                    connection.end();
+
+                                    if (error) reject(error);
+
+                                    resolve(true);
+                                });
+                            }
+                        }
                     });
                 });
             }
@@ -271,6 +296,26 @@ module.exports.Auth = class Auth {
                 })
             }
 
+        });
+    }
+
+    static deletePasswordFromDatabase(user_id){
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            // Open the connection
+            connection.connect();
+
+            connection.query("DELETE FROM passwd WHERE user_id = " + connection.escape(user_id),
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
+            });
         });
     }
 
@@ -414,12 +459,67 @@ module.exports.User = class User {
             connection.connect();
 
             // Execute the query to update the user information
-            connection.query("UPDATE users "
-            + "SET username = " + connection.escape(this.username) + ", "
-            + "first_name = " + connection.escape(this.first_name) + ", "
-            + "last_name = " + connection.escape(this.last_name) + ", "
-            + "email_address = " + connection.escape(this.email_address)
-            + " WHERE user_id = " + connection.escape(this.user_id),
+            connection.query("SELECT COUNT(*) AS UserCount FROM users WHERE user_id = " + connection.escape(this.user_id),
+            (error, results, fields) => {
+                if(error){
+                    connection.end();
+                    reject(error);
+                } else {
+                    if(results[0].UserCount > 0){
+                        // Update the existing user
+
+                        // Execute the query to update the user information
+                        connection.query("UPDATE users "
+                        + "SET username = " + connection.escape(this.username) + ", "
+                        + "first_name = " + connection.escape(this.first_name) + ", "
+                        + "last_name = " + connection.escape(this.last_name) + ", "
+                        + "email_address = " + connection.escape(this.email_address)
+                        + " WHERE user_id = " + connection.escape(this.user_id),
+                        (error, results, fields) => {
+                            // Close the connection
+                            connection.end();
+
+                            if (error) reject(error);
+
+                            resolve(true);
+                        });
+                    } else {
+                        // Insert the new user
+
+                        // Execute the query to update the user information
+                        connection.query("INSERT INTO users VALUES("
+                        + connection.escape(this.user_id) + ","
+                        + connection.escape(this.username) + ", "
+                        + connection.escape(this.first_name) + ", "
+                        + connection.escape(this.last_name) + ", "
+                        + connection.escape(this.email_address) + ")",
+                        (error, results, fields) => {
+                            // Close the connection
+                            connection.end();
+
+                            if (error) reject(error);
+
+                            resolve(true);
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    deleteUser(){
+        return new Promise((resolve, reject) => {
+            if(this.user_id === undefined){
+                reject("User ID not set");
+            }
+
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            // Open the connection
+            connection.connect();
+
+            connection.query("DELETE FROM users WHERE user_id = " + connection.escape(this.user_id),
             (error, results, fields) => {
                 // Close the connection
                 connection.end();
@@ -454,6 +554,23 @@ module.exports.User = class User {
                     resolve(false);
                 }
             })
+        });
+    }
+
+    static generateUserId() {
+        return new Promise((resolve, reject) => {
+            const connection = db.getConnection();
+
+            connection.connect();
+
+            connection.query("SELECT MAX(user_id) AS HighestUserID FROM users",
+            (error, results, fields) => {
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(results[0].HighestUserID + 1);
+            });
         });
     }
 }
@@ -622,6 +739,88 @@ module.exports.AccessToken = class AccessToken {
             });
         });
     }
+
+    deleteUserTokens(exceptions){
+        return new Promise((resolve, reject) => {
+            if(this.user_id === undefined){
+                reject("User ID not set");
+            }
+
+            var exceptionSubQuery = '';
+
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            if (exceptions !== undefined){
+                var hashedExceptions = [];
+
+                // SHA-256 every exception
+                exceptions.forEach((exception) => {
+                    const hash = crypto.createHash('sha256').update(exception).digest('hex');
+
+                    hashedExceptions.push(hash);
+                });
+
+                var i = 0;
+                hashedExceptions.forEach((exception) => {
+                    exceptionSubQuery += " AND access_token != UNHEX(" + connection.escape(exception) + ")";
+                });
+            }
+
+            // Open the connection
+            connection.connect();
+
+            connection.query("DELETE FROM access_tokens WHERE user_id = " + connection.escape(this.user_id) + exceptionSubQuery,
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
+            });
+        });
+    }
+
+    static deleteExpiredTokens(){
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            // Open the connection
+            connection.connect();
+
+            connection.query("DELETE FROM access_tokens WHERE expires < NOW()",
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
+            });
+        });
+    }
+
+    static deleteAllTokens(){
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            // Open the connection
+            connection.connect();
+
+            connection.query("DELETE FROM access_tokens",
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
+            });
+        });
+    }
 }
 
 module.exports.Nonce = class Nonce {
@@ -754,6 +953,48 @@ module.exports.Nonce = class Nonce {
                         }
                     }
                 }
+            });
+        });
+    }
+
+    static deleteAllNonces(){
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the delete query
+            connection.query("DELETE FROM nonces",
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
+            });
+        });
+    }
+
+    static deleteExpiredNonces(){
+        return new Promise((resolve, reject) => {
+            // Create a connection to the database
+            const connection = db.getConnection('delete');
+
+            // Open the connection
+            connection.connect();
+
+            // Execute the delete query
+            connection.query("DELETE FROM nonces WHERE expires < NOW()",
+            (error, results, fields) => {
+                // Close the connection
+                connection.end();
+
+                if (error) reject(error);
+
+                resolve(true);
             });
         });
     }

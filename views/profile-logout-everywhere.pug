@@ -1,0 +1,12 @@
+//- Copyright (C) 2019 Ryan Bester
+extends index
+
+block dashboardContent
+    h1 Profile
+    .container
+        h2 Logout Everywhere
+        p Would you like to stay logged in on this device?
+        .form-group.row
+            .col-sm-10
+                a.btn.btn-primary.ml-2(role="button" href="other-devices/?nonce=" + otherDevicesNonce) Keep me logged in on this device
+                a.btn.btn-secondary.ml-2(role="button" href="all-devices/?nonce=" + allDevicesNonce) Log me out of all devices
